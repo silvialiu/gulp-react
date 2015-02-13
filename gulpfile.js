@@ -8,7 +8,10 @@ var rename = require('gulp-rename'),
 	livereload = require('gulp-livereload'),
 	notify = require('gulp-notify'),
 	literalify = require('literalify'),
-	gulpif = require('gulp-if');
+	gulpif = require('gulp-if'),
+	//gzip = require('gulp-gzip'),
+	uglify = require('gulp-uglify'),
+	streamify = require('gulp-streamify');
 
 var config = {
 	src_app_js: './assets/js/app/*.js',
@@ -23,11 +26,21 @@ var config = {
 		this.emit('end')
 	}
 };
-var watch = false;
+var watch = false,
+	  dev = false;
+
+/**    task jshint    **/
+// TODO :: 
+
+gulp.task('lint', function(){
+	return gulp.src(['***.js'])
+		.pipe(jshint())
+		.pipe(jshint.reporter('default'));
+})
 
 /**    task js     **/
 
-function buildJs(file, watch) {
+function buildJs(file, watch, dev) {
 	var b = browserify({
 		basedir: './assets/js/app/',
 		cache: {},
@@ -48,26 +61,29 @@ function buildJs(file, watch) {
 	}))
 
 	b.add(file)
-	bundleFunc(b);
+	bundleFunc(b, dev);
 }
 
-function bundleFunc(b) {
+function bundleFunc(b, dev) {
+	//console.log(dev);
 	return b.bundle()
+		.on('error', gutil.log.bin)
 		.pipe(source('index.js'))
-		// TODO  .pipe(gutil.env.type === 'production' ? uglify() : gutil.noop())
+		.pipe(gulpif(dev, streamify(uglify())))
 		.pipe(gulp.dest('dist/js'))
 		.pipe(gulpif(watch, livereload()));		
 }
 
 gulp.task('js-watch', function(){
 	watch = true;
-	return buildJs('./index.js', watch);
+	dev = true;
+	return buildJs('./index.js', watch, dev);
 })
 
 /**   task js-nowatch   **/
 
-gulp.task('js-nowatch', function(){
-	return buildJs('./index.js', watch);
+gulp.task('js-build', function(){
+	return buildJs('./index.js', watch, dev);
 });
 
 
@@ -75,7 +91,10 @@ gulp.task('js-nowatch', function(){
 
 
 gulp.task('default', ['browserify']);
+
 gulp.task('watch', ['js-watch'], function(){
 	//gulp.watch('./less/*.less', ['compile-less']);
 	livereload.listen(35729);
-})
+});
+
+gulp.task('build');
