@@ -9,15 +9,15 @@ livereload = require('gulp-livereload'),
 notify = require('gulp-notify'),
 literalify = require('literalify'),
 gulpif = require('gulp-if'),
-	//gzip = require('gulp-gzip'),
-	uglify = require('gulp-uglify'),
-	streamify = require('gulp-streamify');
+//gzip = require('gulp-gzip'),
+uglify = require('gulp-uglify'),
+streamify = require('gulp-streamify');
 
-  var config = {
-   src_app_js: './assets/js/app/*.js',
-   src_js: './assets/js/**/*.js',
-   dis_app_js: './dist/js/',
-   errorHandler: function(){
+var config = {
+  src_app_js: './assets/js/app/*.js',
+  src_js: './assets/js/**/*.js',
+  dis_app_js: './dist/js/',
+  errorHandler: function(){
     var args = Array.prototype.slice.call(arguments);
     notify.onError({
      title: "-----------Compile Error---------",
@@ -33,7 +33,7 @@ dev = false;
 // TODO :: 
 
 gulp.task('lint', function(){
-	return gulp.src(['***.js'])
+  return gulp.src(['***.js'])
   .pipe(jshint())
   .pipe(jshint.reporter('default'));
 })
@@ -41,32 +41,32 @@ gulp.task('lint', function(){
 /**    task js     **/
 
 function buildJs(file, watch, dev) {
-	var b = browserify({
-		basedir: './assets/js/app/',
-		cache: {},
-		packageCache: {}
+  var b = browserify({
+	basedir: './assets/js/app/',
+	cache: {},
+	packageCache: {}
+  });
+  if (watch) {
+	b = watchify(b);
+	b.on('update', function(){
+		bundleFunc(b);
+		gutil.log(gutil.colors.yellow('bundle...'));
 	});
-	if (watch) {
-		b = watchify(b);
-		b.on('update', function(){
-			bundleFunc(b);
-			gutil.log(gutil.colors.yellow('bundle...'));
-		});
-	}
-	b.transform('reactify'); // reactify
+  }
+  b.transform('reactify'); // reactify
 
-	b.transform(literalify.configure({ // map module name with global objects
-		'react': 'window.React',
-		'zepto': 'window.Zepto'
-	}))
+  b.transform(literalify.configure({ // map module name with global objects
+	  'react': 'window.React',
+	  'zepto': 'window.Zepto'
+    }))
 
 	b.add(file)
 	bundleFunc(b, dev);
-}
+  }
 
 function bundleFunc(b, dev) {
-	//console.log(dev);
-	return b.bundle()
+  //console.log(dev);
+  return b.bundle()
   .on('error', gutil.log.bin)
   .pipe(source('index.js'))
   .pipe(gulpif(dev, streamify(uglify())))
@@ -75,15 +75,15 @@ function bundleFunc(b, dev) {
 }
 
 gulp.task('js-watch', function(){
-	watch = true;
-	dev = true;
-	return buildJs('./index.js', watch, dev);
+  watch = true;
+  dev = true;
+  return buildJs('./index.js', watch, dev);
 })
 
 /**   task js-nowatch   **/
 
 gulp.task('js-build', function(){
-	return buildJs('./index.js', watch, dev);
+  return buildJs('./index.js', watch, dev);
 });
 
 
@@ -93,8 +93,8 @@ gulp.task('js-build', function(){
 gulp.task('default', ['browserify']);
 
 gulp.task('watch', ['js-watch'], function(){
-	//gulp.watch('./less/*.less', ['compile-less']);
-	livereload.listen(35729);
+  //gulp.watch('./less/*.less', ['compile-less']);
+  livereload.listen(35729);
 });
 
 gulp.task('build');
