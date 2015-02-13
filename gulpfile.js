@@ -42,9 +42,9 @@ gulp.task('lint', function(){
 
 function buildJs(file, watch, dev) {
   var b = browserify({
-	basedir: './assets/js/app/',
-	cache: {},
-	packageCache: {}
+    basedir: './assets/js/app/',
+    cache: {},
+    packageCache: {}
   });
   if (watch) {
 	b = watchify(b);
