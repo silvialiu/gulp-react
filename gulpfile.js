@@ -3,39 +3,39 @@ var gulp = require('gulp');
 var reactify = require('reactify');
 var gutil = require('gulp-util');
 var rename = require('gulp-rename'),
-	source = require('vinyl-source-stream'),
-	watchify = require('watchify'),
-	livereload = require('gulp-livereload'),
-	notify = require('gulp-notify'),
-	literalify = require('literalify'),
-	gulpif = require('gulp-if'),
+source = require('vinyl-source-stream'),
+watchify = require('watchify'),
+livereload = require('gulp-livereload'),
+notify = require('gulp-notify'),
+literalify = require('literalify'),
+gulpif = require('gulp-if'),
 	//gzip = require('gulp-gzip'),
 	uglify = require('gulp-uglify'),
 	streamify = require('gulp-streamify');
 
-var config = {
-	src_app_js: './assets/js/app/*.js',
-	src_js: './assets/js/**/*.js',
-	dis_app_js: './dist/js/',
-	errorHandler: function(){
-		var args = Array.prototype.slice.call(arguments);
-		notify.onError({
-			title: "-----------Compile Error---------",
-			message: "<%= error.message %>"
-		}).apply(this.args);
-		this.emit('end')
-	}
+  var config = {
+   src_app_js: './assets/js/app/*.js',
+   src_js: './assets/js/**/*.js',
+   dis_app_js: './dist/js/',
+   errorHandler: function(){
+    var args = Array.prototype.slice.call(arguments);
+    notify.onError({
+     title: "-----------Compile Error---------",
+     message: "<%= error.message %>"
+   }).apply(this.args);
+    this.emit('end')
+  }
 };
 var watch = false,
-	  dev = false;
+dev = false;
 
 /**    task jshint    **/
 // TODO :: 
 
 gulp.task('lint', function(){
 	return gulp.src(['***.js'])
-		.pipe(jshint())
-		.pipe(jshint.reporter('default'));
+  .pipe(jshint())
+  .pipe(jshint.reporter('default'));
 })
 
 /**    task js     **/
@@ -67,11 +67,11 @@ function buildJs(file, watch, dev) {
 function bundleFunc(b, dev) {
 	//console.log(dev);
 	return b.bundle()
-		.on('error', gutil.log.bin)
-		.pipe(source('index.js'))
-		.pipe(gulpif(dev, streamify(uglify())))
-		.pipe(gulp.dest('dist/js'))
-		.pipe(gulpif(watch, livereload()));		
+  .on('error', gutil.log.bin)
+  .pipe(source('index.js'))
+  .pipe(gulpif(dev, streamify(uglify())))
+  .pipe(gulp.dest('dist/js'))
+  .pipe(gulpif(watch, livereload()));		
 }
 
 gulp.task('js-watch', function(){
