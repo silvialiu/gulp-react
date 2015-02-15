@@ -99,7 +99,7 @@ dev = false;
 /**    task jshint    **/
 
 gulp.task('lint', function(){
-	return gulp.src(['***.js'])
+  return gulp.src(['***.js'])
   .pipe(jshint())
   .pipe(jshint.reporter('default'));
 })
@@ -145,9 +145,9 @@ function bundleB(b, file, ENV_DEV) {
         //.pipe(plumber({errorHandler: onError}))
         .pipe(gulpif(!ENV_DEV, streamify(sourcemaps.init())))
           .pipe(gulpif(!ENV_DEV, streamify(uglify())))
-        .pipe(gulpif(!ENV_DEV, streamify(sourcemaps.write('./sourcmaps'))))
+        .pipe(gulpif(!ENV_DEV, streamify(sourcemaps.write('./sourcemaps'))))
         .pipe(gulp.dest('dist/js'))
-        .pipe(gulpif(ENV_DEV, livereload()));		
+        .pipe(gulpif(ENV_DEV, livereload()));
 }
 
 /*----- end   **    util func for brwoserify     **/
@@ -158,8 +158,8 @@ gulp.task('js:dev', function(){
 })
 
 
-/*    【 js:build 】   
- *  
+/*    【 js:build 】
+ *
  *     1. uglify
  *     2. not watch
  */
@@ -170,8 +170,8 @@ gulp.task('js:build', function(){
 });
 
 
-/*    【 clean 】   
- *  
+/*    【 clean 】
+ *
  *     clear dist folder for both stylesheet & script
  */
 
@@ -181,13 +181,13 @@ gulp.task('clean', function(){
     });
 });
 
-// TODO 
+// TODO
 /*
     2. source map
 */
 
 
-/**  ----------  task run ------------- **/	
+/**  ----------  task run ------------- **/
 
 
 gulp.task('default', ['']);
