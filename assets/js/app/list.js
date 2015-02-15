@@ -1,4 +1,4 @@
 var foo = require('../mod/foo');
 foo();
 
-alert(234)
+alert('33123');

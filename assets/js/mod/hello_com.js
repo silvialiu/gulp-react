@@ -1,9 +1,10 @@
 //var React = require('react');
 var HelloMessage = React.createClass({
 	render: function(){
-		return <div>Hello {this.props.name}</div>
+		return <div>Hello s</div>
 	}
 });
+/*
 module.exports = {
 	invoke: function(){
 		React.renderComponent(
@@ -12,4 +13,8 @@ module.exports = {
 		)
 	}
 }
-console.log(2)
+*/
+
+module.exports = HelloMessage;
+console.log('module hello_com');
+

@@ -9,12 +9,6 @@ var rename = require('gulp-rename'),
     literalify = require('literalify'),
     gulpif = require('gulp-if')
     jshint = require('gulp-jshint'),
-    forEach = require('gulp-foreach'),
-    _ = require('lodash'),
-    path = require('path'),
-    del = require('del'),
-    sourcemaps = require('gulp-sourcemaps'),
-    sequence = require('gulp-sequence'),
 	//gzip = require('gulp-gzip'),
 	uglify = require('gulp-uglify')
     plumber = require('gulp-plumber'),
@@ -23,7 +17,7 @@ var rename = require('gulp-rename'),
     streamify = require('gulp-streamify');
 
 var config = {
-     src_app_js: './assets/js/app/**/*.js',
+     src_app_js: './assets/js/app/*.js',
      src_js: './assets/js/**/*.js',
      dis_app_js: './dist/js/',
      errorHandler: function(){
@@ -90,6 +84,11 @@ gulp.task('image', function(){
     .pipe(notify({message: '--->>>>>-----Image task complete'}))
 });
 
+/* gulp clean */
+
+gulp.task('clean', function(cb){
+    del(['dist/asstes/css'], cb);
+})
 
 
 
@@ -97,6 +96,7 @@ var watch = false,
 dev = false;
 
 /**    task jshint    **/
+// TODO ::  & uglify().rename({suffix:'.min'})
 
 gulp.task('lint', function(){
 	return gulp.src(['***.js'])
@@ -104,29 +104,66 @@ gulp.task('lint', function(){
   .pipe(jshint.reporter('default'));
 })
 
-/*----- start   **    util func for brwoserify     **/
+/**    task js     **/
 
-function buildJs(ENV_DEV, dir) {
-    return gulp.src(dir)
-        .pipe(forEach(function(stream, file){
-            var realative_filename = './' + path.relative('assets/js/app/', file.path);
-            initB(realative_filename, ENV_DEV);
-            return stream;
-        }));
+function buildJs(file, watch, dev) {
+	var b = browserify({
+		basedir: './assets/js/app/',
+		cache: {},
+		packageCache: {}
+	});
+	if (watch) {
+		b = watchify(b);
+		b.on('update', function(){
+			bundleFunc(b);
+			gutil.log(gutil.colors.yellow('bundle...'));
+		});
+	}
+	b.transform('reactify'); // reactify
+
+	b.transform(literalify.configure({ // map module name with global objects
+		'react': 'window.React',
+		'zepto': 'window.Zepto'
+	}))
+
+
+    var bied = transform(function(filename){
+        console.log('-----------');
+        console.log(filename);
+        b.add(filename);
+        return b.bundle();
+    });
+
+    return gulp.src(file)
+        .pipe(bied)
+        .pipe(gulp.dest('dist/js'));
 }
 
-function initB(file, ENV_DEV) {
-    var b = browserify(file, {
-        basedir: './assets/js/app/',
+function bundleFunc(b, dev) {
+	//console.log(dev);
+	return b.bundle()
+  .pipe(source('index.js'))
+  //.pipe(plumber({errorHandler: onError}))
+  .pipe(gulpif(dev, streamify(uglify())))
+  .pipe(gulp.dest('dist/js'))
+  .pipe(gulpif(watch, livereload()));		
+}
+
+gulp.task('js-watch', function(){
+	watch = true;
+	dev = true;
+    var path = require('path')
+    var filename = path.join(__dirname, 'asssets/app/index.js')
+    var b = browserify(filename, {
+        //basedir: './assets/js/app/',
         cache: {},
-        debug: true,
         packageCache: {}
     });
-    if (ENV_DEV) {
+    if (watch) {
         b = watchify(b);
         b.on('update', function(){
-            bundleB(b, file, ENV_DEV);
-            gutil.log(gutil.colors.yellow('bundle ... file: ' + file));
+            bundleFunc(b);
+            gutil.log(gutil.colors.yellow('bundle...'));
         });
     }
     b.transform('reactify'); // reactify
@@ -134,56 +171,37 @@ function initB(file, ENV_DEV) {
     b.transform(literalify.configure({ // map module name with global objects
         'react': 'window.React',
         'zepto': 'window.Zepto'
-    }));
+    }))
 
-    bundleB(b, file, ENV_DEV);
-}
 
-function bundleB(b, file, ENV_DEV) {
-	return b.bundle()
-        .pipe(source(file))
-        //.pipe(plumber({errorHandler: onError}))
-        .pipe(gulpif(!ENV_DEV, streamify(sourcemaps.init())))
-          .pipe(gulpif(!ENV_DEV, streamify(uglify())))
-        .pipe(gulpif(!ENV_DEV, streamify(sourcemaps.write('./sourcmaps'))))
-        .pipe(gulp.dest('dist/js'))
-        .pipe(gulpif(ENV_DEV, livereload()));		
-}
+    function bundle(){
+        var bundle = transform(function(filename){
+            console.log('------');
+            console.log(filename);
+            return b.bundle()
+        }) 
 
-/*----- end   **    util func for brwoserify     **/
+        return gulp.src('assets/js/app/*.js')
+            .pipe(bundle)
+            .pipe(gulp.dest('dist/js'));
 
-gulp.task('js:dev', function(){
-	DEV = true;
-    return buildJs(DEV, config.src_app_js);
+    }
+
+    return bundle();
 })
 
+/**   task js-nowatch   **/
 
-/*    【 js:build 】   
- *  
- *     1. uglify
- *     2. not watch
- */
-
-gulp.task('js:build', function(){
-    DEV = false;
-    return buildJs(DEV, config.src_app_js);
+gulp.task('js-build', function(){
+	return buildJs('./index.js', watch, dev);
 });
 
-
-/*    【 clean 】   
- *  
- *     clear dist folder for both stylesheet & script
- */
-
-gulp.task('clean', function(){
-    del(['dist/js', 'dist/css', 'dist/img'], function(){
-        gutil.log(gutil.colors.green('------->>>>------ task【 clean 】 complete ' ));
-    });
-});
 
 // TODO 
 /*
+    1. del: build 前清空dist
     2. source map
+
 */
 
 
@@ -192,10 +210,10 @@ gulp.task('clean', function(){
 
 gulp.task('default', ['']);
 
-gulp.task('watch', ['clean', 'js:dev'], function(){
+gulp.task('watch', ['js-watch'], function(){
     // TODO ::  watch html, sass
 	//gulp.watch('./less/*.less', ['compile-less']);
 	livereload.listen(35729);
 });
 
-gulp.task('build', sequence('clean', 'js:build'));
+gulp.task('build');
