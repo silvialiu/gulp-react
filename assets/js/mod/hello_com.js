@@ -1,7 +1,7 @@
 //var React = require('react');
 var HelloMessage = React.createClass({
 	render: function(){
-		return <div>Hello s</div>
+		return <div>Hello tutu</div>
 	}
 });
 /*
@@ -16,5 +16,5 @@ module.exports = {
 */
 
 module.exports = HelloMessage;
-console.log('module hello_com');
+console.log('module hello_com111');
 

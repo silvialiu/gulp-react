@@ -3,6 +3,7 @@ var gulp = require('gulp');
 var reactify = require('reactify');
 var gutil = require('gulp-util');
 var rename = require('gulp-rename'),
+    minifyHtml = require('gulp-minify-html'),
     watchify = require('watchify'),
     livereload = require('gulp-livereload'),
     notify = require('gulp-notify'),
@@ -15,17 +16,32 @@ var rename = require('gulp-rename'),
     del = require('del'),
     sourcemaps = require('gulp-sourcemaps'),
     sequence = require('gulp-sequence'),
+    changed = require('gulp-changed'),
+    sass = require('gulp-sass'),
+    minifycss = require('gulp-minify-css'),
 	//gzip = require('gulp-gzip'),
 	uglify = require('gulp-uglify')
     plumber = require('gulp-plumber'),
+    imagemin = require('gulp-imagemin'),
     transform = require('vinyl-transform'),
     source = require('vinyl-source-stream'),
     streamify = require('gulp-streamify');
 
 var config = {
      src_app_js: './assets/js/app/**/*.js',
+     src_mod_js: './assets/js/mod/**/*.js',
      src_js: './assets/js/**/*.js',
-     dis_app_js: './dist/js/',
+     src_3rd_js: [
+         './assets/js/vender/zepto/zepto.min.js',
+         './assets/js/vender/react/react.min.js'
+     ],
+     src_img: './assets/img/**/*',
+     src_html: './template/**/*.html',
+     src_scss: './assets/sass/**/*.scss',
+     dist_css: './dist/css/',
+     dist_img: './dist/img/',
+     dist_app_js: './dist/js/app/',
+     dist_3rd_js: './dist/js/vendor/',
      errorHandler: function(){
         var args = Array.prototype.slice.call(arguments);
         notify.onError({
@@ -36,19 +52,22 @@ var config = {
     }
 };
 
-//"paths": {
-//    "less": "assets/less/*.less",
-//    "js": "./app/**/*.js",
-//    "jsx": "./app/**/*.jsx",
-/*    "app": "./app/app.js",
-    "html": "*.html"
-  },
-  "dest": {
-    "style": "style.css",
-    "app": "app.js",
-    "dist": "dist"
-  }
-*/
+
+/*    【 clean 】
+ *
+ *     clear dist folder for both stylesheet & script & image
+ */
+
+gulp.task('clean', function(){
+    del.sync(['dist/js', 'dist/css', 'dist/img'], function(){
+        gutil.log(gutil.colors.green('---- 【 clean 】-- complete -- >>>>--' ));
+    });
+});
+
+/*    【 copy_css 】
+ *     TODO:: 
+ *     1. copy file *.css and minify
+ */
 
 gulp.task('copy_css', function(){
     var minFilter = gulpFilter(['**/*.css', '!**/*.min.css']);
@@ -63,43 +82,36 @@ gulp.task('copy_css', function(){
 });
 
 
-gulp.task('css',['copy_css'], function() {
-    return gulp.src(SRC_CSS + '/**/*.scss')
-    .pipe(changed(DEST_CSS))
-    .pipe(plumber({errorHandler: onError}))
-    .pipe(compass({
-        sass: 'static/css',
-        css: 'dist/css',
-        style: 'compact'
-    }))
+/*    【 css 】
+ *
+ *     1. sass
+ *     2. minify
+ */
+
+//gulp.task('css',['copy_css'], function() {
+gulp.task('css', function() {
+    return gulp.src(config.src_scss)
+    //.pipe(changed(config.dist_css))
+    //.pipe(plumber({errorHandler: onError}))
+    .pipe(sass())
     .pipe(minifycss())
-    .pipe(gulp.dest(DST_CSS))
-    .pipe(notify({ message: '--->>>>>-----css task complete' }))
+    .pipe(gulp.dest(config.dist_css))
+    .on('end', function(){
+        gutil.log(gutil.colors.green('---- 【 css 】-- complete -- >>>>--' ));
+    })
     .pipe(livereload());
 });
 
-/* gulp image */
 
-gulp.task('image', function(){
-    return gulp.src('src/image/*/*')
-    .pipe(imagemin({
-        optimizationLevel: 3,
-        progressive: true,
-        interlaced: true}))
-    .pipe(gulp.dest('dist/assets/img'))
-    .pipe(notify({message: '--->>>>>-----Image task complete'}))
-});
+var DEV = false;
 
-
-
-
-var watch = false,
-dev = false;
-
-/**    task jshint    **/
+/*     TODO ::  【 js_lint 】
+ *
+ *     haven't use 
+ */
 
 gulp.task('lint', function(){
-  return gulp.src(['***.js'])
+  return gulp.src([config.src_app_js, config.src_mod_js, '!./assets/js/(mod|app)/**/*.min.js'])
   .pipe(jshint())
   .pipe(jshint.reporter('default'));
 })
@@ -144,47 +156,79 @@ function bundleB(b, file, ENV_DEV) {
         .pipe(source(file))
         //.pipe(plumber({errorHandler: onError}))
         .pipe(gulpif(!ENV_DEV, streamify(sourcemaps.init())))
-          .pipe(gulpif(!ENV_DEV, streamify(uglify())))
+        .pipe(gulpif(!ENV_DEV, streamify(uglify())))
         .pipe(gulpif(!ENV_DEV, streamify(sourcemaps.write('./sourcemaps'))))
-        .pipe(gulp.dest('dist/js'))
+        .pipe(gulp.dest(config.dist_app_js))
         .pipe(gulpif(ENV_DEV, livereload()));
 }
 
 /*----- end   **    util func for brwoserify     **/
 
-gulp.task('js:dev', function(){
+
+/*    【 js_app:dev 】
+ *
+ *     1. browserify & reactify 
+ */
+
+gulp.task('js_app:dev', ['js_lib'], function() {
 	DEV = true;
     return buildJs(DEV, config.src_app_js);
 })
 
 
-/*    【 js:build 】
- *
+/*    【 js_app:build 】
+ *      
+ *     1. browserify & reactify 
  *     1. uglify
  *     2. not watch
  */
 
-gulp.task('js:build', function(){
+gulp.task('js_app:build', ['js_lib'], function() {
     DEV = false;
     return buildJs(DEV, config.src_app_js);
 });
 
 
-/*    【 clean 】
- *
- *     clear dist folder for both stylesheet & script
+/*    【 js_lib 】
+ *      
+ *     1. copy 3rd party library to dist folder
  */
 
-gulp.task('clean', function(){
-    del(['dist/js', 'dist/css', 'dist/img'], function(){
-        gutil.log(gutil.colors.green('------->>>>------ task【 clean 】 complete ' ));
-    });
+gulp.task('js_lib', function() {
+    return gulp.src(config.src_3rd_js)
+        .pipe(gulp.dest(config.dist_3rd_js));
 });
 
-// TODO
-/*
-    2. source map
-*/
+/*    【 html_min 】
+ *      
+ *     1. html min
+ */
+
+gulp.task('html', function() {
+    var minify_html_opts = {};
+    return gulp.src(config.src_html)
+        //.pipe(minifyHtml())
+        .pipe(livereload());
+});
+
+
+/*    【 image 】
+ *
+ *     1. image min 
+ *     2. TODO: base64
+ */
+
+gulp.task('image', function(){
+    return gulp.src(config.src_img)
+    .pipe(imagemin({
+        progressive: true,
+        interlaced: true}))
+    .pipe(gulp.dest(config.dist_img))
+    .on('end', function(){
+        gutil.log(gutil.colors.green('---- 【 image 】-- complete -- >>>>--' ));
+    })
+    .pipe(livereload());
+});
 
 
 /**  ----------  task run ------------- **/
@@ -192,10 +236,25 @@ gulp.task('clean', function(){
 
 gulp.task('default', ['']);
 
-gulp.task('watch', ['clean', 'js:dev'], function(){
-    // TODO ::  watch html, sass
-	//gulp.watch('./less/*.less', ['compile-less']);
-	livereload.listen(35729);
-});
+gulp.task('dev', ['js_app:dev', 'image', 'css']);
 
-gulp.task('build', sequence('clean', 'js:build'));
+gulp.task('watch', ['clean'], function(){
+    gulp.start('dev');
+    livereload.listen(35729);
+
+    gulp.watch(config.src_html, ['html']);
+    gulp.watch(config.src_scss, ['css']);
+    gulp.watch(config.src_img, ['image']);
+})
+
+/*
+gulp.task('watch', ['js_app:dev', 'image'], function(){
+
+	livereload.listen(35729);
+
+    gulp.watch(config.src_html, ['html']);
+    gulp.watch(config.src_img, ['image']);
+});
+*/
+
+gulp.task('build', sequence('clean', 'js_app:build', 'image'));

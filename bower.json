@@ -1,0 +1,22 @@
+{
+  "name": "muying-bower",
+  "version": "0.0.0",
+  "homepage": "https://github.com/silvialiu/gulp-react",
+  "authors": [
+    "silvia <94483886@qq.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "assets/js/bower_components/",
+    "test",
+    "tests"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "zepto": "~1.1.6",
+    "react": "~0.12.2"
+  }
+}
