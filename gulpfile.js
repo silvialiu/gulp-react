@@ -28,27 +28,24 @@ var rename = require('gulp-rename'),
     streamify = require('gulp-streamify');
 
 var config = {
-     src_app_js: './assets/js/app/**/*.js',
-     src_mod_js: './assets/js/mod/**/*.js',
-     src_js: './assets/js/**/*.js',
-     src_3rd_js: [
-         './assets/js/vender/zepto/zepto.min.js',
-         './assets/js/vender/react/react.min.js'
-     ],
-     src_img: './assets/img/**/*',
-     src_html: './template/**/*.html',
-     src_scss: './assets/sass/**/*.scss',
-     dist_css: './dist/css/',
-     dist_img: './dist/img/',
-     dist_app_js: './dist/js/app/',
-     dist_3rd_js: './dist/js/vendor/',
-     errorHandler: function(){
-        var args = Array.prototype.slice.call(arguments);
-        notify.onError({
-           title: "-----------Compile Error---------",
-           message: "<%= error.message %>"
-       }).apply(this.args);
-        this.emit('end')
+    src_app_js: './assets/js/app/**/*.js',
+    src_mod_js: './assets/js/mod/**/*.js',
+    src_js: './assets/js/**/*.js',
+    src_3rd_js: [
+        './assets/js/vender/zepto/zepto.min.js',
+        './assets/js/vender/react/react.min.js'
+    ],
+    src_img: './assets/img/**/*',
+    src_html: './template/**/*.html',
+    src_scss: './assets/sass/**/*.scss',
+    dist_css: './dist/css/',
+    dist_img: './dist/img/',
+    dist_app_js: './dist/js/app/',
+    dist_3rd_js: './dist/js/vendor/',
+    onError: function(err) {
+        gutil.beep();
+        console.log(gutil.colors.red(err));
+        this.emit('end');
     }
 };
 
@@ -134,6 +131,13 @@ function initB(file, ENV_DEV) {
         debug: true,
         packageCache: {}
     });
+    /*
+    b.on('error', function(err){
+        console.log('-----');
+        console.log(err.toString());
+        this.emit('end');
+    });
+*/
     if (ENV_DEV) {
         b = watchify(b);
         b.on('update', function(){
@@ -153,8 +157,8 @@ function initB(file, ENV_DEV) {
 
 function bundleB(b, file, ENV_DEV) {
 	return b.bundle()
+        .on('error', config.onError)
         .pipe(source(file))
-        //.pipe(plumber({errorHandler: onError}))
         .pipe(gulpif(!ENV_DEV, streamify(sourcemaps.init())))
         .pipe(gulpif(!ENV_DEV, streamify(uglify())))
         .pipe(gulpif(!ENV_DEV, streamify(sourcemaps.write('./sourcemaps'))))
