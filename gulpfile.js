@@ -148,9 +148,10 @@ function initB(file, ENV_DEV) {
     b.transform('reactify'); // reactify
 
     b.transform(literalify.configure({ // map module name with global objects
-        'react': 'window.React',
+//        'react': 'window.React',
         'zepto': 'window.Zepto'
     }));
+
 
     bundleB(b, file, ENV_DEV);
 }

@@ -1,15 +1,167 @@
-var foo = require('../mod/foo');
-foo();
+var foo = require('../mod/foo'),
+    React = require('react'),
+    jquery = require('jquery');
 
-var TextBoxList = React.createClass({
+var TimeExample = React.createClass({
     getInitialState: function(){
-        return {count: 1};
+        return {elapsed: 0};
     },
-    add: React.autoBind(function(){
-        this.setState({count: this.state.count + 1});
-    }),
+    componentDidMount: function(){
+        this.timer = setInterval(this.tick, 50);
+    },
+    componentWillUnmount: function(){
+        clearInterval(this.timer);
+    },
+    tick: function(){
+        this.setState({elapsed: new Date() - this.props.start});
+    },
     render: function(){
+        var elapsed = Math.round(this.state.elapsed / 100);
+        var seconds = (elapsed/10).toFixed(1);
+        return (<p> started at <b> {seconds} seconds</b> ago.</p>);
     }
-})
+});
 
-//alert('33123');
+/*
+React.render(
+    <TimeExample start={Date.now()} />,
+    TimeExample
+)*/
+
+var MenuExample = React.createClass({
+    getInitialState: function(){
+        return {focused: 0};
+    },
+    clickHandler: function(index, e){
+        console.log(e);v
+        this.setState({focused: index});
+    },
+    render: function(){
+        var self = this;
+        return (
+            <div>
+                <ul>
+                    {this.props.items.map(function(item, index){
+                        var style="";
+                        if (self.state.focused == index){
+                            style="focused";
+                        }
+                        return <li className={style} onClick={self.clickHandler.bind(self, index,event)}>{item}</li>
+                    })}
+                </ul>
+                <p> select item is {this.props.items[this.state.focused]}</p>
+            </div>
+        );
+    }
+});
+
+/*
+React.render(<MenuExample items={['Home', 'Service', 'About', 'Contact Us']}/>, menuExample);
+*/
+
+var SearchExample = React.createClass({
+    getInitialState: function(){
+        return {
+            searchString: ''
+        };
+    },
+    handleChange: function(e){
+        var str = e.target.value;
+        this.setState({searchString: str});
+    },
+    render: function(){
+        var libraries = this.props.items,
+            searchString = this.state.searchString.trim().toLowerCase();
+        console.log(libraries);
+        if (searchString.length > 0) {
+            libraries = libraries.filter(function(l){
+                return l.name.toLowerCase().match(searchString);
+            });
+        }
+        return(
+            <div>
+                <input type="text" value={this.state.searchString}
+                    onChange={this.handleChange} placeholder="Type here" />
+                <ul>
+                    {libraries.map(function(l){
+                        return <li>{l.name}<a href={l.url}>{l.url}</a></li>
+                    })}
+                </ul>
+            </div>
+        )
+    }
+});
+
+
+var libraries = [
+    { name: 'Backbone.js', url: 'http://documentcloud.github.io/backbone/'},
+    { name: 'AngularJS', url: 'https://angularjs.org/'},
+    { name: 'jQuery', url: 'http://jquery.com/'},
+    { name: 'Prototype', url: 'http://www.prototypejs.org/'},
+    { name: 'React', url: 'http://facebook.github.io/react/'},
+    { name: 'Ember', url: 'http://emberjs.com/'},
+    { name: 'Knockout.js', url: 'http://knockoutjs.com/'},
+    { name: 'Dojo', url: 'http://dojotoolkit.org/'},
+    { name: 'Mootools', url: 'http://mootools.net/'},
+    { name: 'Underscore', url: 'http://documentcloud.github.io/underscore/'},
+    { name: 'Lodash', url: 'http://lodash.com/'},
+    { name: 'Moment', url: 'http://momentjs.com/'},
+    { name: 'Express', url: 'http://expressjs.com/'},
+    { name: 'Koa', url: 'http://koajs.com/'}
+];
+
+//React.render(<SearchExample items={libraries}/>, searchExample);)
+
+var ServiceChooser = React.createClass({
+    getInitialState: function(){
+        return {total: 0}
+    },
+    addTotal: function(price) {
+        this.setState({total: this.state.total + price});
+    },
+    render: function(){
+        var self = this;
+        var services = this.props.items.map(function(s){
+            return <Service name={s.name} price={s.price} 
+                 addTotal={self.addTotal} />;
+        });
+        return  <div>
+            <h1>Our service</h1>
+            <div id="services">
+                {services}
+                <p id="total">Total <b>{this.state.total.toFixed(2)}</b></p>
+            </div> 
+        </div>
+    }
+});
+
+var Service = React.createClass({
+    getInitialState: function(){
+        return {active: false}
+    },
+    handleClick: function(){
+        var active = !this.state.active;
+        this.setState({active: active});
+
+        // 通过调用 addTotal 方法和父组件通信！！！
+        this.props.addTotal(active ? this.props.price: -this.props.price);
+    },
+    render: function(){
+        return  <p className={this.state.active ? 'active' : ''}
+         onClick={this.handleClick}>{this.props.name}
+         <b>{this.props.price.toFixed(2)}</b>
+            </p>
+    }
+});
+
+
+var ss = [
+    { name: 'Web Development', price: 300 },
+    { name: 'Design', price: 400 },
+    { name: 'Integration', price: 250 },
+    { name: 'Training', price: 220 }
+];
+
+//React.render(<ServiceChooser items={ ss }/>, document.getElementById('serviceExample'));
+
+console.log($);
