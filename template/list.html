@@ -117,6 +117,38 @@ h1{
     cursor: default !important;
     padding-top: 10px !important;
 }
+div.picture{
+    display: inline-block;
+    margin: 5px;
+    cursor:pointer;
+    position: relative;
+}
+
+div.picture.favorite:after{
+    content: '❤';
+    position: absolute;
+    font-size: 80px;
+    line-height: 200px;
+    color: #FF224D;
+    width: 100%;
+    text-align: center;
+    left: 0;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+    font-weight: bold;
+}
+
+.pictures, .favorites{
+    white-space: nowrap;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    height: 230px;
+    background-color: #F3F3F3;
+}
+
+.pictures p, .favorites p {
+    padding-top: 100px;
+    font-size: 13px;
+}
 
 </style>
 </head>
@@ -125,6 +157,9 @@ h1{
 <div id="menuExample"></div>
 <div id="searchExample"></div>
 <div id="serviceExample"></div>
+<div id="pictureExample"></div>
+<div id="todoExample"></div>
+<script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
 <script src="/dist/js/app/list.js"></script>	
 </body>
 </html>

@@ -16,5 +16,4 @@ module.exports = {
 */
 
 module.exports = HelloMessage;
-console.log('module hello_com111');
 

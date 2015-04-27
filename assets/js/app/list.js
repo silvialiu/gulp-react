@@ -150,7 +150,7 @@ var Service = React.createClass({
         return  <p className={this.state.active ? 'active' : ''}
          onClick={this.handleClick}>{this.props.name}
          <b>{this.props.price.toFixed(2)}</b>
-            </p>
+        </p>
     }
 });
 
@@ -164,4 +164,55 @@ var ss = [
 
 //React.render(<ServiceChooser items={ ss }/>, document.getElementById('serviceExample'));
 
-console.log($);
+React.createClass({
+    clickHandler: function(){
+        this.props.onClick(this.props.ref);
+    },
+    render: function(){
+        var cls = 'picture' + (this.props.favorite? 'favorite' : '');
+        return (
+            <div className={cls} onClick={this.clickHandler}>
+                <img src={this.props.src} width="200" title={this.props.title} />
+            </div>
+        );
+    }
+})
+
+//React.render(<ServiceChooser />, pictureExample);
+
+var TodoList = React.createClass({
+    render: function(){
+        var newItem = function(text) {
+            return <li>{text}</li>
+        };
+        return <ul>{this.props.items.map(newItem)}</ul>;
+    }
+})
+
+var TodoApp = React.createClass({
+    getInitialState: function(){
+        return {items: [], text: ''};
+    },
+    onChange: function(e){
+        this.setState({text: e.target.value});
+    },
+    handleSubmit: function(e){
+        e.preventDefault();
+        var nextItems = this.state.items.concat([this.state.text]);
+        var nextText = '';
+        this.setState({items: nextItems, text: nextText});
+    },
+    render: function(){
+        return (
+            <div>
+                <TodoList items={this.state.items} />
+                <form onSubmit={this.handleSubmit}>
+                  <input onChange={this.onChange} value={this.state.text} />
+                  <button>{'add #' + (this.state.items.length + 1)}</button>
+                </form>
+            </div>
+        )
+    }
+});
+
+React.render(<TodoApp />, todoExample);

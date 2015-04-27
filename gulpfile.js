@@ -1,6 +1,7 @@
 var browserify = require('browserify');
 var gulp = require('gulp');
 var reactify = require('reactify');
+var es6ify = require('es6ify');
 var gutil = require('gulp-util');
 var rename = require('gulp-rename'),
     minifyHtml = require('gulp-minify-html'),
@@ -145,7 +146,9 @@ function initB(file, ENV_DEV) {
             gutil.log(gutil.colors.yellow('bundle ... file: ' + file));
         });
     }
-    b.transform('reactify'); // reactify
+    b //.add(es6ify.runtime) // runtime is large & not needed for all es6 feature
+        .transform('reactify') // reactify
+        .transform('es6ify');  // es6ify
 
     b.transform(literalify.configure({ // map module name with global objects
 //        'react': 'window.React',
@@ -172,7 +175,7 @@ function bundleB(b, file, ENV_DEV) {
 
 /*    【 js_app:dev 】
  *
- *     1. browserify & reactify 
+ *     1. browserify & reactify
  */
 
 gulp.task('js_app:dev', ['js_lib'], function() {
