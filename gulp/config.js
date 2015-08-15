@@ -1,5 +1,6 @@
 var src  = './assets/',
     dist = './dist/';
+var gutil = require('gulp-util');
 
 module.exports = {
     src_app_js : src + 'js/app/**/*.js',

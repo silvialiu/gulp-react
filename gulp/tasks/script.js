@@ -12,12 +12,13 @@ var gulp       = require('gulp'),
 
     browserify = require('browserify'),
     reactify   = require('reactify'),
+    babelify   = require('babelify'),
     es6ify     = require('es6ify'),
     watchify   = require('watchify'),
     literalify = require('literalify'),
     transform  = require('vinyl-transform'),
     source     = require('vinyl-source-stream'),
-    streamify  = require('gulp-streamify');;
+    streamify  = require('gulp-streamify');
 
 var config = require('../config');
 
@@ -56,9 +57,9 @@ function initB(file, ENV_DEV) {
         });
     }
     b //.add(es6ify.runtime) // runtime is large & not needed for all es6 feature
-        .transform('reactify') // reactify
-        .transform('es6ify');  // es6ify
-
+      //  .transform('reactify') // reactify
+      //  .transform('es6ify');  // es6ify
+      .transform(babelify);
     b.transform(literalify.configure({ // map module name with global objects
 //        'react': 'window.React',
         'zepto': 'window.Zepto'

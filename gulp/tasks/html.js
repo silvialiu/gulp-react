@@ -4,7 +4,10 @@
  */
 
 var gulp       = require('gulp'),
+    gutil      = require('gulp-util'),
     livereload = require('gulp-livereload');
+
+var config = require('../config');
 
 gulp.task('html', function() {
     var minify_html_opts = {};

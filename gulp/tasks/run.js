@@ -1,4 +1,5 @@
 var gulp       = require('gulp'),
+    gutil      = require('gulp-util'),
     sequence   = require('gulp-sequence'),
     livereload = require('gulp-livereload'),
     config     = require('../config');
